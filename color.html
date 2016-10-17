@@ -1,0 +1,188 @@
+<!doctype html>
+<html>
+<head>
+<title>Magic colors</title>
+<style type="text/css">
+
+.circle {
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	border: 1px solid black;
+	margin: 0px 3px;
+	display: inline-block;
+	top: -50%;
+}
+
+.valign_table {
+	display: table;
+	border-spacing: 2px;
+}
+
+.valign {
+	display: table-cell;
+	vertical-align: middle;
+}
+
+.halign {
+	margin: 0 auto;
+}
+
+.table {
+	display: table;
+}
+
+.tr {
+	display: table-row;
+	text-align: center;
+}
+
+td {
+	text-align: center;	
+}
+
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="color-convert.js"></script>
+
+</head>
+<body>
+
+<canvas id="canvas-hsv" width="360" height="40"></canvas>
+
+<p>Enter hue:
+<input id="hue"/>
+<button id="show">Show</button>
+</p>
+
+<script type="text/javascript">
+
+function rgb_to_str(color)
+{
+	return "rgb(" + Math.round(color[0]) + ", " + Math.round(color[1]) + ", " + Math.round(color[2]) + ")";
+}
+
+function setcolor(id, color)
+{
+	$("#" + id).css('background-color', rgb_to_str(color));
+}
+
+function lab_weights(ca, cb, cc, wa, wb, wc)
+{
+	var c = [ca[0] * wa + cb[0] * wb + cc[0] * wc,
+		ca[1] * wa + cb[1] * wb + cc[1] * wc,
+		ca[2] * wa + cb[2] * wb + cc[2] * wc];
+
+	return convert.xyz.rgb(convert.lab.xyz(c));
+}
+
+
+$(document).ready(function()
+{
+	var canvas = document.getElementById('canvas-hsv');
+	var ctx = canvas.getContext('2d');
+
+	for (var i = 0; i < 720; i++)
+	{
+		var color = convert.hsv.rgb([i, 100.0, 100.0]);
+		ctx.fillStyle = rgb_to_str(color);
+		ctx.fillRect(i, 0, 1, 40);
+	}
+
+});
+
+$("#canvas-hsv").click(function(event)
+{
+	var elem = document.getElementById('canvas-hsv');
+    var x = event.pageX - elem.offsetLeft;
+    var y = event.pageY - elem.offsetTop;
+    $("#hue").val(x);
+});
+
+$("#show").click(function()
+{
+	var hue = parseInt($("#hue").val());
+	if (isNaN(hue))
+		return;
+
+	var base_A = convert.hsv.rgb([hue, 100, 100]);
+	var base_B = convert.hsv.rgb([hue, 100, 0]);
+	var base_C = convert.hsv.rgb([hue, 0, 100]);
+
+	setcolor("color_base", base_A);
+
+	setcolor("c00", convert.hsv.rgb([hue, 100, 100]));
+
+	setcolor("c01", convert.hsv.rgb([hue, 100, 80]));
+	setcolor("c11", convert.hsv.rgb([hue, 80, 100]));
+
+	setcolor("c02", convert.hsv.rgb([hue, 100, 60]));
+	setcolor("c12", convert.hsv.rgb([hue, 80, 80]));
+	setcolor("c22", convert.hsv.rgb([hue, 60, 100]));
+
+	setcolor("c03", convert.hsv.rgb([hue, 100, 40]));
+	setcolor("c13", convert.hsv.rgb([hue, 80, 60]));
+	setcolor("c23", convert.hsv.rgb([hue, 60, 80]));
+	setcolor("c33", convert.hsv.rgb([hue, 40, 100]));
+
+	setcolor("c04", convert.hsv.rgb([hue, 100, 20]));
+	setcolor("c14", convert.hsv.rgb([hue, 80, 40]));
+	setcolor("c24", convert.hsv.rgb([hue, 60, 60]));
+	setcolor("c34", convert.hsv.rgb([hue, 40, 80]));
+	setcolor("c44", convert.hsv.rgb([hue, 20, 100]));
+
+	var lab_A = convert.rgb.lab(base_A);
+	var lab_B = convert.rgb.lab(base_B);
+	var lab_C = convert.rgb.lab(base_C);
+
+	setcolor("d00", lab_weights(lab_A, lab_B, lab_C, 1, 0, 0));
+
+	setcolor("d01", lab_weights(lab_A, lab_B, lab_C, 0.8, 0.2, 0.0));
+	setcolor("d11", lab_weights(lab_A, lab_B, lab_C, 0.8, 0.0, 0.2));
+
+	setcolor("d02", lab_weights(lab_A, lab_B, lab_C, 0.6, 0.4, 0.0));
+	setcolor("d12", lab_weights(lab_A, lab_B, lab_C, 0.6, 0.2, 0.2));
+	setcolor("d22", lab_weights(lab_A, lab_B, lab_C, 0.6, 0.0, 0.4));
+
+	setcolor("d03", lab_weights(lab_A, lab_B, lab_C, 0.4, 0.6, 0.0));
+	setcolor("d13", lab_weights(lab_A, lab_B, lab_C, 0.4, 0.4, 0.2));
+	setcolor("d23", lab_weights(lab_A, lab_B, lab_C, 0.4, 0.2, 0.4));
+	setcolor("d33", lab_weights(lab_A, lab_B, lab_C, 0.4, 0.0, 0.6));
+
+	setcolor("d04", lab_weights(lab_A, lab_B, lab_C, 0.2, 0.8, 0.0));
+	setcolor("d14", lab_weights(lab_A, lab_B, lab_C, 0.2, 0.6, 0.2));
+	setcolor("d24", lab_weights(lab_A, lab_B, lab_C, 0.2, 0.4, 0.4));
+	setcolor("d34", lab_weights(lab_A, lab_B, lab_C, 0.2, 0.2, 0.6));
+	setcolor("d44", lab_weights(lab_A, lab_B, lab_C, 0.2, 0.0, 0.8));
+
+});
+
+</script>
+
+<div class="valign_table"><div class="valign">Base color:</div><div class="circle valign" id="color_base"></div></div>
+
+<table style="background-color: black"><tr style="color: white"><td>HSV</td><td>LAB</td></tr>
+<tr><td>
+<div class="table">
+<div class="tr"><div class="circle" id="c00"></div></div>
+<div class="tr"><div class="circle" id="c01"></div><div class="circle" id="c11"></div></div>
+<div class="tr"><div class="circle" id="c02"></div><div class="circle" id="c12"></div><div class="circle" id="c22"></div></div>
+<div class="tr"><div class="circle" id="c03"></div><div class="circle" id="c13"></div><div class="circle" id="c23"></div><div class="circle" id="c33"></div></div>
+<div class="tr"><div class="circle" id="c04"></div><div class="circle" id="c14"></div><div class="circle" id="c24"></div><div class="circle" id="c34"></div><div class="circle" id="c44"></div></div>
+</div>
+
+</td><td>
+
+<div class="table">
+<div class="tr"><div class="circle" id="d00"></div></div>
+<div class="tr"><div class="circle" id="d01"></div><div class="circle" id="d11"></div></div>
+<div class="tr"><div class="circle" id="d02"></div><div class="circle" id="d12"></div><div class="circle" id="d22"></div></div>
+<div class="tr"><div class="circle" id="d03"></div><div class="circle" id="d13"></div><div class="circle" id="d23"></div><div class="circle" id="d33"></div></div>
+<div class="tr"><div class="circle" id="d04"></div><div class="circle" id="d14"></div><div class="circle" id="d24"></div><div class="circle" id="d34"></div><div class="circle" id="d44"></div></div>
+</div>
+
+</td></tr></table>
+
+</body>
+</html>
